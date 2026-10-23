@@ -1,0 +1,56 @@
+[
+  {
+    "titre": "Interstellar",
+    "annee": 2014,
+    "resume": "Un voyage spatial pour sauver l'humanité.",
+    "affiche": "/affiches/interstellar.jpg"
+  },
+  {
+    "titre": "Dune : Deuxième partie",
+    "annee": 2024,
+    "resume": "Paul Atréides rejoint les Fremen sur Arrakis.",
+    "affiche": "/affiches/dune.jpg"
+  },
+  {
+    "titre": "Inception",
+    "annee": 2010,
+    "resume": "Un voleur infiltre les rêves pour accomplir une mission.",
+    "affiche": "/affiches/inception.jpg"
+  },
+  {
+    "titre": "Le Voyage de Chihiro",
+    "annee": 2001,
+    "resume": "Une jeune fille découvre un monde mystérieux.",
+    "affiche": "/affiches/chihiro.jpg"
+  },
+  {
+    "titre": "Avatar",
+    "annee": 2009,
+    "resume": "Un ancien marine découvre Pandora.",
+    "affiche": "/affiches/avatar.jpg"
+  },
+  {
+    "titre": "Spider-Man: Across the Spider-Verse",
+    "annee": 2023,
+    "resume": "Miles Morales traverse de nouveaux univers.",
+    "affiche": "/affiches/spiderverse.jpg"
+  },
+  {
+    "titre": "Seigneur des Anneaux : La Communauté de l'Anneau",
+    "annee": 2001,
+    "resume": "Un hobbit se lance dans une quête pour détruire un anneau maléfique.",
+    "affiche": "/affiches/lotr1.jpg"
+  },
+  {
+    "titre": "Le Seigneur des Anneaux : Les Deux Tours",
+    "annee": 2002,
+    "resume": "La communauté continue sa quête pour détruire l'anneau.",
+    "affiche": "/affiches/lotr2.jpg"
+  },
+  {
+    "titre": "Le Seigneur des Anneaux : Le Retour du Roi",
+    "annee": 2003,
+    "resume": "La bataille finale pour la Terre du Milieu commence.",
+    "affiche": "/affiches/lotr3.jpg"
+  }
+]
