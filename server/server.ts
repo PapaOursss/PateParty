@@ -2,6 +2,22 @@ import express from 'express';
 import films from './films.json' with { type: 'json' }
 const app = express();
 
+app.get('/api/films', (req, res, next) => {
+    const year = req.query.annee;
+    if (year === undefined) {
+        next();
+        return;
+    }
+
+    if (typeof year !== 'string' || !Number.isInteger(Number(year))) {
+        res.status(400).json({ error: 'Invalid year' });
+        return;
+    }
+
+    const filteredFilms = films.filter((film) => film.year === Number(year));
+    res.json(filteredFilms);
+});
+
 app.get('/api/films', (req, res) => {
     res.json(films);
 });
