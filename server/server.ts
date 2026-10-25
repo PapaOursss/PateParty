@@ -23,14 +23,21 @@ app.get('/api/films', (req, res) => {
 });
 
 app.get('/api/films/:id', (req, res) => {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id)) {
-        res.status(400).json({ error: 'Invalid film ID' });
+    const idParam = req.params.id;
+    if (!/^\d+$/.test(idParam)) {
+        res.status(400).json({ error: 'L\'identifiant doit être un nombre entier' });
         return;
     }
+
+    const id = Number(idParam);
+    if (!Number.isSafeInteger(id)) {
+        res.status(400).json({ error: 'L\'identifiant doit être un nombre entier' });
+        return;
+    }
+
     const film = films.find((f) => f.id === id);
     if (!film) {
-        res.status(404).json({ error: 'Film not found' });
+        res.status(404).json({ error: 'Film introuvable' });
         return;
     }
     res.json(film);
