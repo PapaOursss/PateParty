@@ -13,6 +13,9 @@ function App() {
   const [recherche, setRecherche] = useState("");
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
+  const [titre, setTitre] = useState("");
+  const [annee, setAnnee] = useState("");
+  const [erreurAjout, setErreurAjout] = useState("");
 
   useEffect(() => {
     fetch("/api/films")
@@ -34,10 +37,60 @@ function App() {
   if (chargement) return <p>Chargement des films…</p>;
   if (erreur) return <p>{erreur}</p>;
 
+  async function ajouterFilm(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErreurAjout("");
+
+    try {
+      const response = await fetch("/api/films", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: titre, year: Number(annee) }),
+      });
+
+      const nouveauFilm = await response.json();
+
+      if (!response.ok) {
+        setErreurAjout(nouveauFilm.error ?? "Impossible d’ajouter le film.");
+        return;
+      }
+
+      setFilms((filmsActuels) => [...filmsActuels, nouveauFilm as Film]);
+      setTitre("");
+      setAnnee("");
+      setRecherche("");
+    } catch {
+      setErreurAjout("Le serveur ne répond pas. Vérifie qu’il est démarré.");
+    }
+  }
+
   return (
     <main>
       <h1>TD 10 — React lit ton API</h1>
+      <form onSubmit={ajouterFilm}>
+        <label htmlFor="titre-film">Titre</label>
+        <input
+          id="titre-film"
+          value={titre}
+          onChange={(event) => setTitre(event.target.value)}
+          required
+        />
 
+        <label htmlFor="annee-film">Année</label>
+        <input
+          id="annee-film"
+          type="number"
+          min="1888"
+          max="2030"
+          step="1"
+          value={annee}
+          onChange={(event) => setAnnee(event.target.value)}
+          required
+        />
+
+        <button type="submit">Ajouter le film</button>
+        {erreurAjout && <p role="alert">{erreurAjout}</p>}
+      </form>
       <label htmlFor="recherche">Rechercher un film</label>
       <br />
       <input
