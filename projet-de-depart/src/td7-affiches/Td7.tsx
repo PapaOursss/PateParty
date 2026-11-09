@@ -1,5 +1,6 @@
 // Corrigé — TD 7 — Les affiches : la liste chargée avec fetch, avec la recherche.
-// « Aller plus loin » (sélection, filtre par année, tri, résumé au clic) : Td7-plus-loin.tsx.
+// TD 10 : la grille charge /api/films, depuis le serveur ; le proxy de Vite transmet la requête au port 3000.
+// « Aller plus loin » du TD 7 (sélection, filtre par année, tri, résumé au clic) : Td7-plus-loin.tsx.
 import { useEffect, useState } from 'react';
 import type { Movie } from '../donnees/films';
 
@@ -26,12 +27,12 @@ export function Td7() {
   useEffect(() => {
     async function load() {
       try {
-        const response = await fetch('/films.json');
+        const response = await fetch('/api/films');
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data: Movie[] = await response.json();
         setMovies(data);
       } catch {
-        setError('Impossible de charger les films.');
+        setError('Le serveur ne répond pas. Est-il lancé (npm run server) ?');
       } finally {
         setLoading(false);
       }

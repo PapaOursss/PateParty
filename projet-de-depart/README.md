@@ -1,10 +1,14 @@
-# Corrigé des TD React — lundi 19 octobre 2026
+# Projet de départ — lundi 9 novembre 2026
 
-Une solution possible des TD 1 à 7. Tu peux la lire, la comparer à ton code, ou t'en servir comme projet de départ pour les TD suivants.
+Le corrigé des TD 8 à 10 : le site des TD React, un serveur Express qui donne les films, et la grille du TD 7 qui lit ce serveur.
 
-1. Dans ce dossier : `npm ci`, puis `npm run dev`.
-2. Ouvre http://localhost:5173. Le menu en haut de la page ouvre le corrigé de chaque TD.
+1. Dans ce dossier : `npm ci`.
+2. Terminal 1 : `npm run server`, le serveur, sur http://localhost:3000/api/films.
+3. Terminal 2 : `npm run dev`, le site, sur http://localhost:5173. La page « TD 7 · Affiches » charge les films du serveur (TD 10).
 
-`npm run build` vérifie les types, puis construit le site.
+- `server/index.ts` : le serveur (TD 9). `server/films.ts` : ses films.
+- `vite.config.ts` : le proxy, qui transmet `/api` au serveur (TD 10).
+- `src/td7-affiches/Td7.tsx` : la grille, qui charge `/api/films` (TD 10).
+- `npm run build` vérifie les types du site et du serveur, puis construit le site.
 
-Pour les TD 9 et 10 : les films sont dans `src/donnees/films.ts`. La grille du TD 7 (`src/td7-affiches/Td7.tsx`) les charge depuis `public/films.json`.
+Tu as déjà un dépôt GitHub ? Copie ces fichiers dans ton dossier, à la place des tiens (garde le dossier caché `.git`), puis `npm install`, un commit et `git push`.
