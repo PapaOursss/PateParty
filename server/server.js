@@ -1,9 +1,43 @@
 import { createServer } from 'node:http'
+import { DatabaseSync } from 'node:sqlite'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import filmsInitiaux from './films.json' with { type: 'json' }
 
 const PORT = 3000
 
-const films = filmsInitiaux.map((film) => ({ vu: false, ...film }))
+const base = new DatabaseSync(join(dirname(fileURLToPath(import.meta.url)), 'films.db'))
+base.exec(`
+  CREATE TABLE IF NOT EXISTS films (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titre TEXT NOT NULL,
+    annee INTEGER NOT NULL,
+    resume TEXT NOT NULL DEFAULT '',
+    affiche TEXT NOT NULL DEFAULT '',
+    vu INTEGER NOT NULL DEFAULT 0
+  )
+`)
+
+if (base.prepare('SELECT COUNT(*) AS nombre FROM films').get().nombre === 0) {
+  const insererInitial = base.prepare('INSERT INTO films (id, titre, annee, resume, affiche) VALUES (?, ?, ?, ?, ?)')
+  for (const film of filmsInitiaux) {
+    insererInitial.run(film.id, film.titre, film.annee, film.resume, film.affiche)
+  }
+}
+
+const COLONNES = 'id, titre, annee, resume, affiche, vu'
+const requetes = {
+  tous: base.prepare(`SELECT ${COLONNES} FROM films ORDER BY id`),
+  parAnnee: base.prepare(`SELECT ${COLONNES} FROM films WHERE annee = ? ORDER BY id`),
+  parId: base.prepare(`SELECT ${COLONNES} FROM films WHERE id = ?`),
+  ajouter: base.prepare('INSERT INTO films (titre, annee, resume, affiche) VALUES (?, ?, ?, ?)'),
+  modifierVu: base.prepare('UPDATE films SET vu = ? WHERE id = ?'),
+  supprimer: base.prepare('DELETE FROM films WHERE id = ?'),
+}
+
+function lireFilm(ligne) {
+  return ligne ? { ...ligne, vu: ligne.vu === 1 } : undefined
+}
 
 function envoyerJson(response, statut, donnees) {
   response.writeHead(statut, {
@@ -42,19 +76,11 @@ async function ajouterFilm(request, response) {
     return
   }
 
-  const film = {
-    id: Math.max(0, ...films.map((f) => f.id)) + 1,
-    titre,
-    annee,
-    resume: '',
-    affiche: '',
-    vu: false,
-  }
-  films.push(film)
-  envoyerJson(response, 201, film)
+  const resultat = requetes.ajouter.run(titre, annee, '', '')
+  envoyerJson(response, 201, lireFilm(requetes.parId.get(resultat.lastInsertRowid)))
 }
 
-async function modifierFilm(request, response, film) {
+async function modifierFilm(request, response, id) {
   let donnees
   try {
     donnees = JSON.parse(await lireCorps(request))
@@ -68,8 +94,8 @@ async function modifierFilm(request, response, film) {
     return
   }
 
-  film.vu = donnees.vu
-  envoyerJson(response, 200, film)
+  requetes.modifierVu.run(donnees.vu ? 1 : 0, id)
+  envoyerJson(response, 200, lireFilm(requetes.parId.get(id)))
 }
 
 const server = createServer((request, response) => {
@@ -86,10 +112,10 @@ const server = createServer((request, response) => {
       'Access-Control-Allow-Origin': '*',
     })
     const annee = url.searchParams.get('annee')
-    const resultat = annee === null
-      ? films
-      : films.filter((film) => film.annee === Number(annee))
-    response.end(JSON.stringify(resultat))
+    const lignes = annee === null
+      ? requetes.tous.all()
+      : requetes.parAnnee.all(Number(annee))
+    response.end(JSON.stringify(lignes.map(lireFilm)))
     return
   }
 
@@ -105,22 +131,21 @@ const server = createServer((request, response) => {
       return
     }
 
-    const index = films.findIndex((f) => f.id === Number(identifiant))
-    if (index === -1) {
+    const film = lireFilm(requetes.parId.get(Number(identifiant)))
+    if (!film) {
       envoyerJson(response, 404, { erreur: 'Film introuvable' })
       return
     }
 
-    const film = films[index]
     if (request.method === 'DELETE') {
-      films.splice(index, 1)
+      requetes.supprimer.run(film.id)
       response.writeHead(204, { 'Access-Control-Allow-Origin': '*' })
       response.end()
       return
     }
 
     if (request.method === 'PATCH') {
-      modifierFilm(request, response, film)
+      modifierFilm(request, response, film.id)
       return
     }
 
