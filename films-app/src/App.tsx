@@ -66,7 +66,7 @@ function App() {
 
   return (
     <main>
-      <h1>TD 10 — React lit ton API</h1>
+      <h1>TD 12 — Ajouter un film</h1>
       <form onSubmit={ajouterFilm}>
         <label htmlFor="titre-film">Titre</label>
         <input
