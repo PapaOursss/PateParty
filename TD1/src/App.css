@@ -1,0 +1,38 @@
+.fiche {
+  max-width: 280px;
+  padding: 1rem;
+  border: 1px solid #d5d9e4;
+  border-radius: 8px;
+  background: #f5f5fa;
+  text-align: left;
+}
+
+.affiche {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 340px;
+  padding: 1rem;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.8rem;
+}
+
+.affiche strong {
+  font-size: 1.2rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: #b45309;
+  color: white;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.annee {
+  font-size: 0.85rem;
+  color: #556;
+}
