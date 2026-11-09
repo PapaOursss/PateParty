@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import './App.css'
 import Cpt from './Cpt'
 import FilmCard, { type Film } from './FilmCard'
@@ -9,19 +9,21 @@ type FilmStatus = 'loading' | 'success' | 'error'
 
 let filmsRequest: Promise<Film[]> | null = null
 
+function isFilm(value: unknown): value is Film {
+  return typeof value === 'object'
+    && value !== null
+    && 'titre' in value
+    && typeof value.titre === 'string'
+    && 'annee' in value
+    && typeof value.annee === 'number'
+    && 'resume' in value
+    && typeof value.resume === 'string'
+    && 'affiche' in value
+    && typeof value.affiche === 'string'
+}
+
 function isFilmList(value: unknown): value is Film[] {
-  return Array.isArray(value) && value.every((film: unknown) => (
-    typeof film === 'object'
-    && film !== null
-    && 'titre' in film
-    && typeof film.titre === 'string'
-    && 'annee' in film
-    && typeof film.annee === 'number'
-    && 'resume' in film
-    && typeof film.resume === 'string'
-    && 'affiche' in film
-    && typeof film.affiche === 'string'
-  ))
+  return Array.isArray(value) && value.every(isFilm)
 }
 
 function chargerFilms() {
@@ -54,6 +56,10 @@ function App() {
   const [anneeSelectionnee, setAnneeSelectionnee] = useState('')
   const [tri, setTri] = useState<'titre' | 'annee'>('titre')
   const [filmsSelectionnes, setFilmsSelectionnes] = useState<string[]>([])
+  const [nouveauTitre, setNouveauTitre] = useState('')
+  const [nouvelleAnnee, setNouvelleAnnee] = useState('')
+  const [erreurAjout, setErreurAjout] = useState('')
+  const [ajoutEnCours, setAjoutEnCours] = useState(false)
 
   useEffect(() => {
     let actif = true
@@ -101,6 +107,36 @@ function App() {
     ))
   }
 
+  async function ajouterFilm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setAjoutEnCours(true)
+    setErreurAjout('')
+    try {
+      const response = await fetch('/api/films', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titre: nouveauTitre, annee: nouvelleAnnee }),
+      })
+      const data: unknown = await response.json()
+      if (!response.ok) {
+        const message = typeof data === 'object' && data !== null && 'erreur' in data && typeof data.erreur === 'string'
+          ? data.erreur
+          : `Le serveur a répondu HTTP ${response.status}.`
+        throw new Error(message)
+      }
+      if (!isFilm(data)) {
+        throw new Error('Le serveur a renvoyé un film invalide.')
+      }
+      setFilms((listeActuelle) => [...listeActuelle, data])
+      setNouveauTitre('')
+      setNouvelleAnnee('')
+    } catch (error: unknown) {
+      setErreurAjout(error instanceof Error ? error.message : 'Impossible d’ajouter le film.')
+    } finally {
+      setAjoutEnCours(false)
+    }
+  }
+
   return (
     <main className="page">
       <h1 className="page-title">TD 1 — Mes films</h1>
@@ -115,6 +151,38 @@ function App() {
       )}
       {statutFilms === 'success' && (
         <>
+          <form className="search" onSubmit={ajouterFilm}>
+            <div className="search-fields">
+              <div>
+                <label htmlFor="nouveau-titre" className="prenom-label">Titre du film</label>
+                <input
+                  id="nouveau-titre"
+                  type="text"
+                  className="prenom-input"
+                  value={nouveauTitre}
+                  onChange={(e) => setNouveauTitre(e.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="nouvelle-annee" className="prenom-label">Année</label>
+                <input
+                  id="nouvelle-annee"
+                  type="number"
+                  className="prenom-input"
+                  value={nouvelleAnnee}
+                  onChange={(e) => setNouvelleAnnee(e.target.value)}
+                />
+              </div>
+              <div>
+                <button type="submit" className="film-select" disabled={ajoutEnCours}>
+                  {ajoutEnCours ? 'Ajout…' : 'Ajouter le film'}
+                </button>
+              </div>
+            </div>
+            {erreurAjout && (
+              <p className="search-error" role="alert">{erreurAjout}</p>
+            )}
+          </form>
           <div className="search">
             <div className="search-fields">
               <div>
