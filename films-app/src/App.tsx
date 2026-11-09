@@ -20,6 +20,8 @@ function isFilm(value: unknown): value is Film {
     && typeof value.resume === 'string'
     && 'affiche' in value
     && typeof value.affiche === 'string'
+    && 'vu' in value
+    && typeof value.vu === 'boolean'
 }
 
 function isFilmList(value: unknown): value is Film[] {
@@ -60,6 +62,7 @@ function App() {
   const [nouvelleAnnee, setNouvelleAnnee] = useState('')
   const [erreurAjout, setErreurAjout] = useState('')
   const [ajoutEnCours, setAjoutEnCours] = useState(false)
+  const [erreurCarte, setErreurCarte] = useState('')
 
   useEffect(() => {
     let actif = true
@@ -134,6 +137,41 @@ function App() {
       setErreurAjout(error instanceof Error ? error.message : 'Impossible d’ajouter le film.')
     } finally {
       setAjoutEnCours(false)
+    }
+  }
+
+  async function basculerVu(film: Film) {
+    setErreurCarte('')
+    try {
+      const response = await fetch(`/api/films/${film.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vu: !film.vu }),
+      })
+      if (!response.ok) {
+        throw new Error(`Le serveur a répondu HTTP ${response.status}.`)
+      }
+      const data: unknown = await response.json()
+      if (!isFilm(data)) {
+        throw new Error('Le serveur a renvoyé un film invalide.')
+      }
+      setFilms((listeActuelle) => listeActuelle.map((f) => (f.id === film.id ? data : f)))
+    } catch {
+      setErreurCarte('Impossible de mettre à jour le film. Vérifie que le serveur est lancé.')
+    }
+  }
+
+  async function supprimerFilm(film: Film) {
+    setErreurCarte('')
+    try {
+      const response = await fetch(`/api/films/${film.id}`, { method: 'DELETE' })
+      if (!response.ok) {
+        throw new Error(`Le serveur a répondu HTTP ${response.status}.`)
+      }
+      setFilms((listeActuelle) => listeActuelle.filter((f) => f.id !== film.id))
+      setFilmsSelectionnes((selection) => selection.filter((filmTitre) => filmTitre !== film.titre))
+    } catch {
+      setErreurCarte('Impossible de supprimer le film. Vérifie que le serveur est lancé.')
     }
   }
 
@@ -229,6 +267,9 @@ function App() {
               {filmsSelectionnes.length} film{filmsSelectionnes.length > 1 ? 's' : ''} sélectionné{filmsSelectionnes.length > 1 ? 's' : ''}
             </p>
           </div>
+          {erreurCarte && (
+            <p className="search-error" role="alert">{erreurCarte}</p>
+          )}
           {filtres.length === 0 ? (
             <p className="search-empty">Aucun film ne correspond à ta recherche.</p>
           ) : (
@@ -239,6 +280,8 @@ function App() {
                   film={film}
                   selected={filmsSelectionnes.includes(film.titre)}
                   onToggleSelected={() => basculerSelection(film.titre)}
+                  onToggleVu={() => basculerVu(film)}
+                  onDelete={() => supprimerFilm(film)}
                 />
               ))}
             </section>

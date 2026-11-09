@@ -1,20 +1,26 @@
 import { useState } from 'react'
 
 export type Film = {
+    id: number
     titre: string
     annee: number
     resume: string
     affiche: string
+    vu: boolean
 }
 
 function FilmCard({
     film,
     selected,
     onToggleSelected,
+    onToggleVu,
+    onDelete,
 }: {
     film: Film
     selected: boolean
     onToggleSelected: () => void
+    onToggleVu: () => void
+    onDelete: () => void
 }) {
     const [likes, setLikes] = useState(0)
     const [resumeVisible, setResumeVisible] = useState(false)
@@ -54,6 +60,17 @@ function FilmCard({
                 </button>
                 <button className="film-like" onClick={() => setLikes(likes + 1)}>
                     ♥ {likes}
+                </button>
+                <button
+                    className="film-select"
+                    type="button"
+                    aria-pressed={film.vu}
+                    onClick={onToggleVu}
+                >
+                    {film.vu ? 'Marquer à revoir' : 'Marquer vu'}
+                </button>
+                <button className="film-select" type="button" onClick={onDelete}>
+                    Supprimer
                 </button>
             </div>
         </article>

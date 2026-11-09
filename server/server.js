@@ -1,7 +1,9 @@
 import { createServer } from 'node:http'
-import films from './films.json' with { type: 'json' }
+import filmsInitiaux from './films.json' with { type: 'json' }
 
 const PORT = 3000
+
+const films = filmsInitiaux.map((film) => ({ vu: false, ...film }))
 
 function envoyerJson(response, statut, donnees) {
   response.writeHead(statut, {
@@ -46,9 +48,28 @@ async function ajouterFilm(request, response) {
     annee,
     resume: '',
     affiche: '',
+    vu: false,
   }
   films.push(film)
   envoyerJson(response, 201, film)
+}
+
+async function modifierFilm(request, response, film) {
+  let donnees
+  try {
+    donnees = JSON.parse(await lireCorps(request))
+  } catch {
+    envoyerJson(response, 400, { erreur: 'Le corps de la requête doit être du JSON valide' })
+    return
+  }
+
+  if (typeof donnees?.vu !== 'boolean') {
+    envoyerJson(response, 400, { erreur: 'Le champ vu doit valoir true ou false' })
+    return
+  }
+
+  film.vu = donnees.vu
+  envoyerJson(response, 200, film)
 }
 
 const server = createServer((request, response) => {
@@ -73,7 +94,7 @@ const server = createServer((request, response) => {
   }
 
   const correspondanceFilm = url.pathname.match(/^\/api\/films\/([^/]+)$/)
-  if (request.method === 'GET' && correspondanceFilm) {
+  if (correspondanceFilm && ['GET', 'PATCH', 'DELETE'].includes(request.method)) {
     const identifiant = correspondanceFilm[1]
     if (!/^\d+$/.test(identifiant)) {
       response.writeHead(400, {
@@ -84,21 +105,26 @@ const server = createServer((request, response) => {
       return
     }
 
-    const film = films.find((f) => f.id === Number(identifiant))
-    if (film === undefined) {
-      response.writeHead(404, {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Access-Control-Allow-Origin': '*',
-      })
-      response.end(JSON.stringify({ erreur: 'Film introuvable' }))
+    const index = films.findIndex((f) => f.id === Number(identifiant))
+    if (index === -1) {
+      envoyerJson(response, 404, { erreur: 'Film introuvable' })
       return
     }
 
-    response.writeHead(200, {
-      'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': '*',
-    })
-    response.end(JSON.stringify(film))
+    const film = films[index]
+    if (request.method === 'DELETE') {
+      films.splice(index, 1)
+      response.writeHead(204, { 'Access-Control-Allow-Origin': '*' })
+      response.end()
+      return
+    }
+
+    if (request.method === 'PATCH') {
+      modifierFilm(request, response, film)
+      return
+    }
+
+    envoyerJson(response, 200, film)
     return
   }
 
