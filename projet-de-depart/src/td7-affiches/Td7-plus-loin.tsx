@@ -40,40 +40,22 @@ export function Td7() {
   const [sort, setSort] = useState<'title' | 'year'>('title');
   const [ids, setIds] = useState<number[]>([]);
   const [openedId, setOpenedId] = useState<number | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
-
     async function load() {
-      setLoading(true);
-      setError(null);
       try {
         const response = await fetch('/api/films');
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data: Movie[] = await response.json();
-        if (cancelled) return;
         setMovies(data);
       } catch {
-        if (!cancelled) {
-          setError('Impossible de charger les films. Vérifie que le serveur est lancé.');
-        }
+        setError('Le serveur ne répond pas. Est-il lancé (npm run server) ?');
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [retryCount]);
-
-  function retryLoading() {
-    setLoading(true);
-    setError(null);
-    setRetryCount((count) => count + 1);
-  }
+    load();
+  }, []);
 
   const years = [...new Set(movies.map((m) => m.year))].sort();
   const visible = movies
@@ -113,12 +95,7 @@ export function Td7() {
         <option value="year">Année, du plus récent</option>
       </select>
       {loading && <p>Chargement des films…</p>}
-      {error && (
-        <div>
-          <p className="error">{error}</p>
-          <button onClick={retryLoading}>Réessayer</button>
-        </div>
-      )}
+      {error && <p className="error">{error}</p>}
       {!loading && !error && (
         <>
           <p>

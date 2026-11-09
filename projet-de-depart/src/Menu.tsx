@@ -16,7 +16,7 @@ const pages = [
   { id: 'td4', label: "TD 4 · J'aime", Page: Td4 },
   { id: 'td5', label: 'TD 5 · Recherche', Page: Td5 },
   { id: 'td6', label: 'TD 6 · Minuteur', Page: Td6 },
-  { id: 'td7', label: 'TD 7 · Affiches', Page: Td7 },
+  { id: 'td7', label: 'TD 7 et 10 · Affiches', Page: Td7 },
   { id: 'td7plus', label: 'TD 7 · Plus loin', Page: Td7PlusLoin },
 ];
 

@@ -1,5 +1,6 @@
 // Corrigé — TD 7 — Les affiches : la liste chargée avec fetch, avec la recherche.
-// « Aller plus loin » (sélection, filtre par année, tri, résumé au clic) : Td7-plus-loin.tsx.
+// TD 10 : la grille charge /api/films, depuis le serveur ; le proxy de Vite transmet la requête au port 3000.
+// « Aller plus loin » du TD 7 (sélection, filtre par année, tri, résumé au clic) : Td7-plus-loin.tsx.
 import { useEffect, useState } from 'react';
 import type { Movie } from '../donnees/films';
 
@@ -22,40 +23,22 @@ export function Td7() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
-
     async function load() {
-      setLoading(true);
-      setError(null);
       try {
         const response = await fetch('/api/films');
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data: Movie[] = await response.json();
-        if (cancelled) return;
         setMovies(data);
       } catch {
-        if (!cancelled) {
-          setError('Impossible de charger les films. Vérifie que le serveur est lancé.');
-        }
+        setError('Le serveur ne répond pas. Est-il lancé (npm run server) ?');
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [retryCount]);
-
-  function retryLoading() {
-    setLoading(true);
-    setError(null);
-    setRetryCount((count) => count + 1);
-  }
+    load();
+  }, []);
 
   const visible = movies.filter((m) => m.title.toLowerCase().includes(query.trim().toLowerCase()));
 
@@ -65,12 +48,7 @@ export function Td7() {
       <label htmlFor="query">Rechercher un film</label>
       <input id="query" value={query} onChange={(e) => setQuery(e.target.value)} />
       {loading && <p>Chargement des films…</p>}
-      {error && (
-        <div>
-          <p className="error">{error}</p>
-          <button onClick={retryLoading}>Réessayer</button>
-        </div>
-      )}
+      {error && <p className="error">{error}</p>}
       {!loading && !error && (
         <>
           <p>{visible.length} film(s)</p>
