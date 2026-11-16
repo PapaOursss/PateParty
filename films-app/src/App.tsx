@@ -4,6 +4,7 @@ import Cpt from './Cpt'
 import FilmCard, { type Film } from './FilmCard'
 import Minuteur from './Minuteur'
 import Prenom from './Prenom'
+import RechercheTmdb from './RechercheTmdb'
 
 type FilmStatus = 'loading' | 'success' | 'error'
 
@@ -181,6 +182,7 @@ function App() {
       <Cpt />
       <Minuteur />
       <Prenom />
+      <RechercheTmdb />
       {statutFilms === 'loading' && (
         <p className="search-status" role="status">Chargement des films…</p>
       )}

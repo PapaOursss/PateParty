@@ -98,11 +98,63 @@ async function modifierFilm(request, response, id) {
   envoyerJson(response, 200, lireFilm(requetes.parId.get(id)))
 }
 
+const URL_AFFICHE = 'https://image.tmdb.org/t/p/w500'
+
+async function rechercherFilms(response, titre) {
+  if (titre.length === 0) {
+    envoyerJson(response, 400, { erreur: 'Le titre à chercher ne doit pas être vide' })
+    return
+  }
+
+  const adresse = new URL('https://api.themoviedb.org/3/search/movie')
+  adresse.searchParams.set('query', titre)
+  adresse.searchParams.set('language', 'fr-FR')
+
+  let reponseTmdb
+  try {
+    reponseTmdb = await fetch(adresse, {
+      headers: { Authorization: `Bearer ${process.env.TMDB_TOKEN ?? ''}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(8000),
+    })
+  } catch (erreur) {
+    console.error('TMDB ne répond pas :', erreur.message)
+    envoyerJson(response, 502, { erreur: 'TMDB ne répond pas, réessaie plus tard' })
+    return
+  }
+
+  if (!reponseTmdb.ok) {
+    console.error(`TMDB a refusé la recherche (statut ${reponseTmdb.status}) : vérifie TMDB_TOKEN dans server/.env`)
+    envoyerJson(response, 502, { erreur: 'TMDB a refusé la recherche' })
+    return
+  }
+
+  let donnees
+  try {
+    donnees = await reponseTmdb.json()
+  } catch {
+    console.error('TMDB a répondu sans JSON valide')
+    envoyerJson(response, 502, { erreur: 'TMDB a répondu de façon inattendue' })
+    return
+  }
+  const films = donnees.results.map((film) => ({
+    id: film.id,
+    titre: film.title,
+    annee: film.release_date ? Number(film.release_date.slice(0, 4)) : null,
+    affiche: film.poster_path ? `${URL_AFFICHE}${film.poster_path}` : null,
+  }))
+  envoyerJson(response, 200, films)
+}
+
 const server = createServer((request, response) => {
   const url = new URL(request.url ?? '/', `http://localhost:${PORT}`)
 
   if (request.method === 'GET' && url.pathname === '/api/sante') {
     envoyerJson(response, 200, { tmdb: process.env.TMDB_TOKEN ? 'présent' : 'absent' })
+    return
+  }
+
+  if (request.method === 'GET' && url.pathname === '/api/recherche') {
+    rechercherFilms(response, (url.searchParams.get('titre') ?? '').trim())
     return
   }
 

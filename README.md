@@ -15,11 +15,13 @@ Prérequis : Node.js 22.5 ou plus récent (module `node:sqlite`).
    bash
    cd films-app && npm install && cd ..
    
-2. Lancer le serveur (dans un terminal) :
+2. Créer `server/.env` à partir de `server/.env.example` et y mettre ton jeton TMDB (`TMDB_TOKEN=...`). Ce fichier n'est jamais envoyé sur GitHub.
+
+3. Lancer le serveur (dans un terminal) :
    bash
    cd server && npm start
    
-3. Lancer l'interface (dans un autre terminal) :
+4. Lancer l'interface (dans un autre terminal) :
    bash
    cd films-app && npm run dev
    

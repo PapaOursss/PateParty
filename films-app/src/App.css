@@ -294,6 +294,19 @@
   line-height: 1.55;
 }
 
+.tmdb-attribution {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  font-size: 13px;
+  color: #29445f;
+}
+
+.tmdb-attribution p {
+  margin: 0;
+}
+
 @media (max-width: 360px) {
   .page {
     width: calc(100% - 24px);
