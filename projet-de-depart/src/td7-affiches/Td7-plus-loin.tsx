@@ -2,6 +2,7 @@
 // Pour l'essayer : copier ce fichier à la place de Td7.tsx.
 import { useEffect, useState } from 'react';
 import type { Movie } from '../donnees/films';
+import { AjoutFilm } from './AjoutFilm';
 
 function FilmCard({
   movie,
@@ -73,6 +74,7 @@ export function Td7() {
   return (
     <main>
       <h1>TD 7 — Les affiches</h1>
+      <AjoutFilm onAdded={(movie) => setMovies((current) => [...current, movie])} />
       <label htmlFor="query">Rechercher un film</label>
       <input id="query" value={query} onChange={(e) => setQuery(e.target.value)} />
       <label htmlFor="year">Année</label>

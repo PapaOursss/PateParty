@@ -3,6 +3,7 @@
 // « Aller plus loin » du TD 7 (sélection, filtre par année, tri, résumé au clic) : Td7-plus-loin.tsx.
 import { useEffect, useState } from 'react';
 import type { Movie } from '../donnees/films';
+import { AjoutFilm } from './AjoutFilm';
 
 function FilmCard({ movie }: { movie: Movie }) {
   return (
@@ -45,6 +46,7 @@ export function Td7() {
   return (
     <main>
       <h1>TD 7 — Les affiches</h1>
+      <AjoutFilm onAdded={(movie) => setMovies((current) => [...current, movie])} />
       <label htmlFor="query">Rechercher un film</label>
       <input id="query" value={query} onChange={(e) => setQuery(e.target.value)} />
       {loading && <p>Chargement des films…</p>}
