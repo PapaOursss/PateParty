@@ -1,3 +1,48 @@
 
 projet-de-depart/
+# Dépendances
 node_modules/
+
+# Builds
+dist/
+dist-ssr/
+*.local
+
+# Base de données
+*.db
+*.sqlite
+*.sqlite3
+
+# Variables d'environnement
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Éditeurs
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Archives
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
