@@ -6,6 +6,7 @@ type Film = {
   title: string;
   year: number;
   overview: string;
+  watched: boolean;
 };
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
   const [titre, setTitre] = useState("");
   const [annee, setAnnee] = useState("");
   const [erreurAjout, setErreurAjout] = useState("");
+  const [erreurAction, setErreurAction] = useState("");
 
   useEffect(() => {
     fetch("/api/films")
@@ -64,6 +66,53 @@ function App() {
     }
   }
 
+  async function changerStatut(film: Film) {
+    setErreurAction("");
+
+    try {
+      const response = await fetch(`/api/films/${film.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ watched: !film.watched }),
+      });
+
+      if (!response.ok) {
+        const resultat = await response.json();
+        throw new Error(resultat.error ?? `Erreur HTTP ${response.status}`);
+      }
+
+      const filmMisAJour = (await response.json()) as Film;
+      setFilms((filmsActuels) =>
+        filmsActuels.map((filmActuel) =>
+          filmActuel.id === film.id ? filmMisAJour : filmActuel,
+        ),
+      );
+    } catch (error) {
+      setErreurAction(
+        error instanceof Error ? error.message : "Impossible de modifier le statut.",
+      );
+    }
+  }
+
+  async function supprimerFilm(id: number) {
+    setErreurAction("");
+
+    try {
+      const response = await fetch(`/api/films/${id}`, { method: "DELETE" });
+
+      if (!response.ok) {
+        const resultat = await response.json();
+        throw new Error(resultat.error ?? `Erreur HTTP ${response.status}`);
+      }
+
+      setFilms((filmsActuels) => filmsActuels.filter((film) => film.id !== id));
+    } catch (error) {
+      setErreurAction(
+        error instanceof Error ? error.message : "Impossible de supprimer le film.",
+      );
+    }
+  }
+
   return (
     <main>
       <h1>TD 12 — Ajouter un film</h1>
@@ -101,12 +150,19 @@ function App() {
 
       <p>{filmsFiltres.length} film(s)</p>
 
+      {erreurAction && <p role="alert">{erreurAction}</p>}
+
       <div className="grille-films">
         {filmsFiltres.map((film) => (
           <article key={film.id}>
             <h2>{film.title}</h2>
             <p>{film.year}</p>
             <p>{film.overview}</p>
+            <p>{film.watched ? "Vu" : "À voir"}</p>
+            <button onClick={() => changerStatut(film)}>
+              {film.watched ? "À revoir" : "Vu"}
+            </button>
+            <button onClick={() => supprimerFilm(film.id)}>Supprimer</button>
           </article>
         ))}
       </div>

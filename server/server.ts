@@ -77,10 +77,39 @@ app.post('/api/films', (req, res) => {
         title,
         year,
         overview: '',
+        watched: false,
     };
 
     films.push(nouveauFilm);
     res.status(201).json(nouveauFilm);
+});
+
+app.patch('/api/films/:id', (req, res) => {
+    const film = films.find((f) => f.id === Number(req.params.id));
+
+    if (!film) {
+        res.status(404).json({ error: 'Film introuvable' });
+        return;
+    }
+    if (typeof req.body?.watched !== 'boolean') {
+        res.status(400).json({ error: 'Le statut watched doit être un booléen' });
+        return;
+    }
+
+    film.watched = req.body.watched;
+    res.json(film);
+});
+
+app.delete('/api/films/:id', (req, res) => {
+    const index = films.findIndex((f) => f.id === Number(req.params.id));
+
+    if (index === -1) {
+        res.status(404).json({ error: 'Film introuvable' });
+        return;
+    }
+
+    films.splice(index, 1);
+    res.status(204).end();
 });
 
 app.listen(3000);
