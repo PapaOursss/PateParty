@@ -4,6 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start": "node --watch server.js"
+    "start": "node --env-file-if-exists=.env --watch server.js"
   }
 }
