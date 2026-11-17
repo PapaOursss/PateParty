@@ -33,6 +33,13 @@ button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+.delete-button {
+  background: #c62828;
+}
+.delete-button:hover {
+  background: #a51f1f;
+}
+
 input,
 select,
 textarea {

@@ -3,7 +3,7 @@ import initialFilms from './films.json' with { type: 'json' };
 import type { Movie } from '../src/donnees/films.js';
 
 const app = express();
-const films: Movie[] = [...initialFilms];
+const films: Movie[] = initialFilms.map((film) => ({ ...film, watched: false }));
 let nextId = Math.max(...films.map((film) => film.id)) + 1;
 
 app.use(express.json());
@@ -63,10 +63,51 @@ app.post('/api/films', (req, res) => {
     title: cleanTitle,
     year,
     overview: '',
+    watched: false,
   };
 
   films.push(newFilm);
   res.status(201).json(newFilm);
+});
+
+app.patch('/api/films/:id', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: 'ID invalide' });
+    return;
+  }
+
+  const film = films.find((f) => f.id === id);
+  if (!film) {
+    res.status(404).json({ error: 'Film introuvable' });
+    return;
+  }
+
+  const body: unknown = req.body;
+  if (typeof body !== 'object' || body === null || !('watched' in body) || typeof body.watched !== 'boolean') {
+    res.status(400).json({ error: 'Le statut vu doit être un booléen.' });
+    return;
+  }
+
+  film.watched = body.watched;
+  res.json(film);
+});
+
+app.delete('/api/films/:id', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    res.status(400).json({ error: 'ID invalide' });
+    return;
+  }
+
+  const filmIndex = films.findIndex((f) => f.id === id);
+  if (filmIndex === -1) {
+    res.status(404).json({ error: 'Film introuvable' });
+    return;
+  }
+
+  films.splice(filmIndex, 1);
+  res.status(204).end();
 });
 
 app.listen(3000, () => {

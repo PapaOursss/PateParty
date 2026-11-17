@@ -5,25 +5,49 @@ import { useEffect, useState } from 'react';
 import type { Movie } from '../donnees/films';
 import { AjoutFilm } from './AjoutFilm';
 
-function FilmCard({ movie }: { movie: Movie }) {
-  return (
-    <article className="movie">
-      <div className={`poster tone-${movie.id % 6}`}>
-        <span>Au cinéma</span>
-        <strong>{movie.title}</strong>
-        <span>{movie.year}</span>
-      </div>
-      <h3>{movie.title}</h3>
-      <p className="year">{movie.year}</p>
-    </article>
-  );
-}
-
 export function Td7() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [pendingId, setPendingId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<{ id: number; message: string } | null>(null);
+
+  async function updateFilm(movie: Movie, method: 'PATCH' | 'DELETE') {
+    setPendingId(movie.id);
+    setActionError(null);
+    try {
+      const response = await fetch(`/api/films/${movie.id}`, {
+        method,
+        ...(method === 'PATCH' && {
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ watched: !movie.watched }),
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(
+          response.status === 404
+            ? 'Ce film est introuvable sur le serveur.'
+            : `Le serveur a refusé la demande (HTTP ${response.status}).`,
+        );
+      }
+
+      if (method === 'DELETE') {
+        if (response.status !== 204) throw new Error(`Erreur HTTP ${response.status}`);
+        setMovies((current) => current.filter((film) => film.id !== movie.id));
+      } else {
+        const updated: Movie = await response.json();
+        setMovies((current) => current.map((film) => (film.id === movie.id ? updated : film)));
+      }
+    } catch (error) {
+      setActionError({
+        id: movie.id,
+        message: error instanceof Error ? error.message : 'Impossible de joindre le serveur.',
+      });
+    } finally {
+      setPendingId(null);
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -57,7 +81,32 @@ export function Td7() {
           {visible.length === 0 && <p>Aucun film ne correspond.</p>}
           <div className="catalog">
             {visible.map((movie) => (
-              <FilmCard key={movie.id} movie={movie} />
+              <article className="movie" key={movie.id}>
+                <div className={`poster tone-${movie.id % 6}`}>
+                  <span>{movie.watched ? 'Déjà vu' : 'À voir'}</span>
+                  <strong>{movie.title}</strong>
+                  <span>{movie.year}</span>
+                </div>
+                <h3>{movie.title}</h3>
+                <p className="year">{movie.year}</p>
+                <button disabled={pendingId !== null} onClick={() => void updateFilm(movie, 'PATCH')}>
+                  {movie.watched ? 'À voir' : 'Vu'}
+                </button>{' '}
+                <button
+                  className="delete-button"
+                  disabled={pendingId !== null}
+                  onClick={() => {
+                    if (window.confirm(`Confirmer la suppression de « ${movie.title} » ?`)) {
+                      void updateFilm(movie, 'DELETE');
+                    }
+                  }}
+                >
+                  Supprimer
+                </button>
+                {actionError?.id === movie.id && (
+                  <p className="error" role="alert">{actionError.message}</p>
+                )}
+              </article>
             ))}
           </div>
         </>
